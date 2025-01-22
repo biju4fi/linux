@@ -1,0 +1,114 @@
+`iptables` is a command-line utility in Linux used to configure the **netfilter** framework for packet filtering and network traffic management. It acts as a firewall, allowing system administrators to define rules to allow, deny, or redirect traffic.
+
+---
+
+### **Key Components**
+1. **Tables**  
+   - `iptables` operates on different tables, each designed for specific purposes.  
+     Common tables include:
+     - **filter**: Default table for packet filtering (e.g., accept or drop).
+     - **nat**: Used for network address translation (e.g., port forwarding, masquerading).
+     - **mangle**: For altering packet headers.
+     - **raw**: For advanced, low-level packet processing.
+     - **security**: For Mandatory Access Control (MAC) rules.
+
+2. **Chains**  
+   Each table contains predefined **chains**, which are lists of rules.  
+   - **INPUT**: Handles incoming packets destined for the local machine.
+   - **FORWARD**: Handles packets routed through the machine (not locally destined).
+   - **OUTPUT**: Handles packets originating from the machine.
+   - (For `nat` table):
+     - **PREROUTING**: Alters packets before routing.
+     - **POSTROUTING**: Alters packets after routing.
+
+3. **Rules**  
+   - Rules define actions (or targets) to take on packets that match certain criteria.
+   - Example actions:
+     - `ACCEPT`: Allow the packet.
+     - `DROP`: Discard the packet without notification.
+     - `REJECT`: Discard the packet and notify the sender.
+     - `LOG`: Log the packet details.
+
+---
+
+### **Basic Commands**
+1. **View Rules**  
+   ```bash
+   iptables -L -v -n
+   ```
+   - `-L`: List current rules.
+   - `-v`: Show detailed output.
+   - `-n`: Avoid DNS lookups for faster display.
+
+2. **Add a Rule**  
+   ```bash
+   iptables -A INPUT -p tcp --dport 22 -j ACCEPT
+   ```
+   - `-A INPUT`: Append a rule to the `INPUT` chain.
+   - `-p tcp`: Match TCP packets.
+   - `--dport 22`: Match packets destined for port 22 (SSH).
+   - `-j ACCEPT`: Jump to the `ACCEPT` target (allow the packet).
+
+3. **Delete a Rule**  
+   ```bash
+   iptables -D INPUT -p tcp --dport 22 -j ACCEPT
+   ```
+
+4. **Insert a Rule**  
+   ```bash
+   iptables -I INPUT 1 -p tcp --dport 80 -j ACCEPT
+   ```
+   - `-I INPUT 1`: Insert at the top of the `INPUT` chain.
+
+5. **Block Traffic**  
+   ```bash
+   iptables -A INPUT -s 192.168.1.100 -j DROP
+   ```
+   - `-s 192.168.1.100`: Source IP to block.
+
+6. **Save and Persist Rules**  
+   - Save rules:  
+     ```bash
+     iptables-save > /etc/iptables/rules.v4
+     ```
+   - Load rules at boot:  
+     ```bash
+     iptables-restore < /etc/iptables/rules.v4
+     ```
+
+7. **Flush All Rules**  
+   ```bash
+   iptables -F
+   ```
+
+---
+
+### **Common Scenarios**
+1. **Allow SSH**:
+   ```bash
+   iptables -A INPUT -p tcp --dport 22 -j ACCEPT
+   ```
+
+2. **Allow HTTP and HTTPS**:
+   ```bash
+   iptables -A INPUT -p tcp --dport 80 -j ACCEPT
+   iptables -A INPUT -p tcp --dport 443 -j ACCEPT
+   ```
+
+3. **Block All Traffic Except SSH**:
+   ```bash
+   iptables -P INPUT DROP
+   iptables -A INPUT -p tcp --dport 22 -j ACCEPT
+   ```
+
+4. **NAT Example (Masquerading)**:
+   ```bash
+   iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+   ```
+
+---
+
+### **Deprecation Notice**
+Starting from newer Linux distributions, `iptables` is being replaced by **nftables**, which provides better performance and a more flexible syntax. However, `iptables` is still widely used.
+
+Let me know if you'd like to see advanced examples or troubleshooting tips! 🚀
